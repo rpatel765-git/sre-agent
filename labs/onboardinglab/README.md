@@ -374,7 +374,7 @@ Retrieve and open the SRE Agent URL:
 azd -C ./ticketingapp-source env get-value SRE_AGENT_URL
 ```
 
-Go to **Build + setup** > **Extensions** > **Connectors**, open **Office 365 Outlook**, and complete OAuth sign-in if the connector requires attention. GitHub OAuth was completed during deployment.
+Go to **Build + setup** > **Extensions** > **Connectors**, open **Office 365 Outlook**, and complete OAuth sign-in if the connector requires attention. GitHub OAuth was completed during deployment and is managed under **Build + setup** > **Context** > **Code access**, not under Connectors.
 
 > [!CAUTION]
 > Authenticate only through the trusted connection UI. Never place credentials in agent chat or script arguments.
@@ -386,9 +386,9 @@ Use these read-only UI checks. Do not create a GitHub issue or send a test email
 1. Go to **Settings** > **General** and confirm Reader permissions, Review mode, Preview upgrade channel, the configured model, managed identity, region, and agent Application Insights.
 2. Go to **Settings** > **Managed resources** and confirm the ticketing workload resource group is listed.
 3. Go to **Build + setup** > **Monitor** > **Logs** and confirm `app-insights` is healthy.
-4. Go to **Build + setup** > **Context** > **Code access** and confirm `sre-agent` points to the attendee's fork on branch `main`.
+4. Go to **Build + setup** > **Context** > **Code access** and confirm `sre-agent` points to the attendee's fork on branch `main` and the `github.com` OAuth connection is healthy.
 5. Go to **Build + setup** > **Context** > **Knowledge sources** and confirm `onboardinglab-architecture.md` and `onboardinglab-incident-runbook.md` are present.
-6. Go to **Build + setup** > **Extensions** > **Connectors** and confirm the Outlook and GitHub connections show a healthy state.
+6. Go to **Build + setup** > **Extensions** > **Connectors** and confirm the Office 365 Outlook connection shows a healthy state. GitHub does not appear here: its OAuth connection is verified on the Code access page in check 4. The **GitHub MCP server** card in the Connectors wizard is a separate PAT-based integration that this lab does not use.
 7. Go to **Build + setup** > **Extensions** > **Global Hooks** and confirm `evidence-checklist` is enabled for the Stop event.
 8. Go to **Build + setup** > **Extensions** > **Tools** > **Advanced Permissions** and confirm the configured allow, ask, and deny patterns.
 9. Go to **Build + setup** > **Extensions** > **Skill Builder** and confirm `sre-agent-self-configure` is present with its three Azure CLI tools.
