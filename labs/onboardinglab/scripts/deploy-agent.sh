@@ -257,12 +257,20 @@ wait_for_agent_endpoint() {
   fail "The SRE Agent data-plane endpoint was not available within 10 minutes."
 }
 
+web_deployments_url() {
+  printf 'https://management.azure.com/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/deployments%s?api-version=2024-04-01' \
+    "$SUBSCRIPTION" "$LAB_RG" "$CHECKOUT_APP_NAME" "${1:+/$1}"
+}
+
+# Reads deployment records through ARM, not Kudu: the SRE Agent sandbox denies
+# managed-identity tokens sent to *.scm.azurewebsites.net (workspace-mi-deny).
 get_latest_web_deployment() {
-  az webapp log deployment list \
-    --subscription "$SUBSCRIPTION" \
-    --resource-group "$LAB_RG" \
-    --name "$CHECKOUT_APP_NAME" \
-    --output json
+  az rest --method get --url "$(web_deployments_url)" --output json \
+    | jq '[.value[]? | .properties + {id: (.name | split("/") | last)}] | sort_by(.start_time // "") | reverse'
+}
+
+show_web_deployment_log() {
+  az rest --method get --url "$(web_deployments_url "$1/log")" --output json
 }
 
 web_deployment_is_active() {
@@ -332,11 +340,7 @@ poll_web_deployment() {
     if web_deployment_is_failed "$deployment_status"; then
       status "Failed OneDeploy record:"
       jq '.[0]' <<<"$latest" || true
-      az webapp log deployment show \
-        --subscription "$SUBSCRIPTION" \
-        --resource-group "$LAB_RG" \
-        --name "$CHECKOUT_APP_NAME" \
-        --output json || true
+      show_web_deployment_log "$deployment_id" || true
       return 1
     fi
     sleep 20
@@ -504,11 +508,7 @@ fi
 poll_web_deployment "$prior_deployment_id" "$expect_new_web_deployment" \
   || fail "OneDeploy failed. Inspect the existing deployment log before retrying."
 status "OneDeploy reached a successful terminal state."
-az webapp log deployment show \
-  --subscription "$SUBSCRIPTION" \
-  --resource-group "$LAB_RG" \
-  --name "$CHECKOUT_APP_NAME" \
-  --output json
+jq '.[0]' <<<"$(get_latest_web_deployment)"
 
 CURRENT_STAGE="agent configuration generation"
 status "Generating the onboarding agent configuration."
