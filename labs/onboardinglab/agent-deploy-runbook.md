@@ -57,6 +57,13 @@ individual commands in separate Azure CLI tool calls. If the terminal or thread 
 or the script exits nonzero and a confirmed repository fix is applied, run the same script command
 again; it detects active or completed deployments and resumes safely.
 
+For `app-service-postgresql`, the regional preflight checks whether PostgreSQL 16 and
+`Standard_B1ms` are advertised by `list-skus`; it does not guarantee provisioning capacity.
+If the nested PostgreSQL deployment fails with `SkuNotAvailable`, inspect that deployment's
+failed operation and confirm subscription- and region-specific capacity or a supported
+alternative before changing the repository. Do not interpret the preflight result as proof
+that a retry or an unverified SKU/zone change will succeed. Do not finalize a failed deployment.
+
 Do not install dependencies, create another SRE Agent or managed identity, enable the database
 fault, modify resources outside `LAB_RG`, remove temporary Owner, or lower the agent's access.
 The external bootstrap finalizer performs and verifies that final boundary.
